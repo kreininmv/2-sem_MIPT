@@ -1,0 +1,328 @@
+.model tiny
+
+.code
+org 100h
+	
+start:		mov ax, 0003h		
+                int 10h			
+
+		mov dx, 0		; dx = 0;
+		mov di, 0b800h		; preparing for videoram
+                mov es, di
+		push dx
+
+		call clear_blm_frame_pause
+                pop dx
+
+		moving_table:
+
+		push dx
+		mov dx, 0
+		call clear_blm_frame
+		pop dx
+
+	        cmp dx, 13		;
+		je end_while         	; if (dx == LEN_Y) end_while
+
+		inc dx
+		add X, 3
+		add Y, 1
+		push dx
+
+		call make_frame
+
+		push X
+		sub X, 58
+		neg X
+		call make_frame
+		pop X
+				
+		mov ah, 86h
+		mov cx, 09h
+		int 15h
+		pop dx
+
+		jmp moving_table
+
+;		Get pause
+;============================================================================================================================================
+		mov ah, 86h
+		mov cx, 20h
+		int 15h
+
+		jmp end_program
+
+
+; ENTRY: ax = sym, 
+; Exit: none
+; Destr: cx, dx, di, bx, si
+while_:	
+	        cmp dx, bx		;
+		je end_while         	; if (dx == LEN_Y) end_while
+
+		mov cx, si  	
+		rep stosw
+		
+		sub di, si
+		sub di, si
+
+                add di, 80*2		
+
+                inc dx              
+
+		jmp while_           	; continue circle
+
+
+while_word:	
+		mov al, ZERO         	; al = '0'
+		mov bx, cx	   	; bx = &msg;
+		add bx, dx           	; bx = bx + dx;
+	        cmp [bx], al         	; compare(*bx, '0')
+		
+                je end_while         	; if (*bx = '0') end_while
+                                     	; else  
+		mov ah, 0bah          	; yellow on red background
+		mov al, [bx]         	; al = *bx  symbol for writing
+		mov es:[di], ax      	; put symbol 'ax' in pos [dx] in videoram
+
+		add di, 2            	; di += 2
+		inc dx               	; dx += 1   moving point to the next sym																												
+
+		jmp while_word          ; continue circle
+
+
+end_program:
+		mov ax, 4C00h        
+		int 21h
+
+end_while:	ret
+
+
+
+clear_blm_frame_pause:
+		
+	        cmp dx, 24		;
+		je end_while       	;
+
+;		Pause		
+		mov ah, 86h
+		mov cx, 08h
+		int 15h
+		
+
+;		Write first N???r
+		mov bx, dx		;
+		inc dx
+		push dx
+		mov di, 0
+
+		mov ax, 160
+		mul bx
+		mov bx, ax
+
+		add di, bx
+		mov si, 80		;  
+		mov bx, 1		;
+	
+		mov dx, 0		; dx = 0 - counter lines
+		mov ah, 8eh
+		mov al, 01h
+
+		call while_
+
+;		Pause
+		mov ah, 86h
+		mov cx, 08h
+		int 15h
+
+;		Write second N???r		
+
+		pop dx
+		mov bx, dx		;
+		inc dx
+		push dx
+		mov di, 0
+
+		mov ax, 160
+		mul bx
+		mov bx, ax
+
+		add di, bx
+		mov si, 80		;  
+		mov bx, 1		;
+
+		mov dx, 0		; dx = 0 - counter lines
+		mov ah, 0eeh
+		mov al, 02h
+
+		call while_
+
+		
+		pop dx
+		jmp clear_blm_frame_pause          	; continue circle
+
+
+clear_blm_frame:
+		
+	        cmp dx, 24		;
+		je end_while       	;
+		
+
+;		Write first N???r
+		mov bx, dx		;
+		inc dx
+		push dx
+		mov di, 0
+
+		mov ax, 160
+		mul bx
+		mov bx, ax
+
+		add di, bx
+		mov si, 80		;  
+		mov bx, 1		;
+	
+		mov dx, 0		; dx = 0 - counter lines
+		mov ah, 8eh
+		mov al, 01h
+
+		call while_
+
+;		Write second N???r		
+
+		pop dx
+		mov bx, dx		;
+		inc dx
+		push dx
+		mov di, 0
+
+		mov ax, 160
+		mul bx
+		mov bx, ax
+
+		add di, bx
+		mov si, 80		;  
+		mov bx, 1		;
+
+		mov dx, 0		; dx = 0 - counter lines
+		mov ah, 0eeh
+		mov al, 02h
+
+		call while_
+
+		
+		pop dx
+		jmp clear_blm_frame          	; continue circle
+
+
+make_frame:
+;		Write first frame
+;============================================================================================================================================		
+		mov si, X		; put cursor on (x, y) coordinate
+		mov bx, Y		;
+		mov di, 0
+
+		mov ax, 2
+		mul si
+		mov si, ax
+
+		mov ax, 160
+		mul bx
+		mov bx, ax
+
+		add di, si
+		add di, bx
+		mov si, LEN_X		;  
+		mov bx, LEN_Y		;
+		
+		mov dx, 0		; dx = 0 - counter lines
+		mov ah, 4eh
+		mov al, '='
+
+		call while_		; draw rectangle with a left (x,y) - coordinates
+
+;		Write second frame frame
+;============================================================================================================================================		
+		mov si, X		; put cursor on (x, y) coordinate
+		mov bx, Y		;
+		inc si
+		inc bx
+	
+		mov di, 0
+
+		mov ax, 2
+		mul si
+		mov si, ax
+
+		mov ax, 160
+		mul bx
+		mov bx, ax
+
+		add di, si
+		add di, bx
+		mov si, LEN_X		;
+		mov bx, LEN_Y		;
+		sub si, 2
+		sub bx, 2
+				
+
+		mov dx, 0		; dx = 0 - counter lines
+		mov ah, 0eeh
+		mov al, ' '
+
+		call while_		; draw rectangle with a left (x,y) - coordinates
+;============================================================================================================================================
+;		Print word on coordinates (X,Y)
+;============================================================================================================================================
+		mov si, X		; put cursor on (x, y) coordinate
+		mov bx, Y		;
+
+		mov di, 0	
+		mov ax, 2
+		mul si
+		mov si, ax
+
+		mov ax, 160
+		mul bx
+		mov bx, ax
+		add di, si
+		add di, bx
+		mov cx, offset msg   	; cx = &msg;
+
+		call while_word
+;============================================================================================================================================
+;		Print word on coordinates (X,Y)
+;============================================================================================================================================
+		mov si, X		; put cursor on (x, y) coordinate
+		inc si
+		mov bx, Y		;
+		add bx, 4
+
+		mov di, 0	
+		mov ax, 2
+		mul si
+		mov si, ax
+
+		mov ax, 160
+		mul bx
+		mov bx, ax
+		add di, si
+		add di, bx
+		mov cx, offset msg_git	; cx = &msg;
+
+		call while_word
+;============================================================================================================================================
+		ret
+
+
+	
+.data 
+ZERO		equ '0'
+msg:		db "POLTORA$HKA $AID MEOW!", ZERO
+msg_git:	db "github.com/kreininmv", ZERO
+X		dw 0
+Y		dw 0
+LEN_X          	dw 22
+LEN_Y          	dw 10
+
+end 		start           
