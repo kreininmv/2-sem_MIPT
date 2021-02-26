@@ -1,0 +1,156 @@
+.model tiny
+
+.code
+org 100h
+	
+start:		
+
+		mov     ax, 001Eh
+		push 	ax
+		
+		call    print_dex
+		
+		call 	new_line
+	
+		pop 	ax
+		push 	ax
+		call   	print_eightx
+		
+		call 	new_line
+
+		pop 	ax
+		push 	ax
+		call   	print_bin
+
+		call 	new_line
+
+		pop 	ax
+		xchg    al, ah		; change high and low register
+		push 	ax		; remember register ax
+		call    print_hex	; show HEX
+		pop 	ax
+			
+		xchg    al, ah		; again change hign and low register
+		push 	ax		; again rememver register ax
+		call    print_hex	; show HEX
+		
+		
+		
+		jmp end_program
+
+
+
+end_program:
+		mov 	ax, 4C00h        
+		int 	21h
+
+;Print HEX of al register
+print_hex 	proc 
+        	mov     di, OFFSET str_hex
+	        mov     cx, ax
+        	and     ax, 000fh		; ax = 000AL
+	        mov     bx, OFFSET table_hex
+        	xlat    			; al = bx[al]
+		mov     [di+1], al		; [di+1] = al;
+ 
+		mov     ax, cx			;
+		and     ax, 00f0h		; ax = 00AL0
+		mov     cl, 4			; cl = 4
+		shr     ax, cl			; ax >> 4
+		xlat				; al = bx[al] 
+		mov     [di], al		; [di] = al
+
+		mov     ah, 09h			; print 
+		mov     dx, OFFSET str_hex	;
+		int     21h
+		ret
+
+print_hex 	endp
+
+;Print num in binary. AX register
+print_bin 	proc
+		mov 	bx, ax		; bx = ax
+		mov 	cx, 10h		; cx = 16 - num of loop
+bin0:
+		shl 	bx, 1h		; bx >> 1
+		jc 	bin1		; if in bx was '1' then go to ob2 and put '1' in dl else put '0' in dl
+    
+		mov 	dl, '0'		; dl = '0'
+		jmp 	bin2
+
+bin1:
+		mov 	dl, '1'		; dl = '1'
+bin2:
+		mov 	ah,	2h	; ah = 2
+		int 	21h		; write(dl)
+		loop 	bin0		; cx-- while (cx != 0)
+		ret    
+print_bin 	endp
+
+print_dex 	proc
+  
+		xor     cx, cx		; cx = 0, counter of digits
+		mov     bx, 10 		; base of the number system
+div_rep:
+		xor     dx, dx		; dx = 0
+		div     bx		; div of base
+
+		push    dx		; save in stack
+		inc     cx		; cx++
+
+		test    ax, ax		; check if ax == ax
+		jnz     div_rep		; repeat 
+		
+		mov     ah, 02h         ; set mode of 21h
+
+		loop_prt:
+		pop     dx
+		add     dl, '0'
+		int     21h		; print(dl)
+		
+		loop    loop_prt	; cx-- while(cx != 0)
+
+		ret
+print_dex 	endp
+
+print_eightx 	proc
+
+		xor     cx, cx		; cx = 0, counter of digits
+		mov     bx, 8 		; base of the number system
+loop_div:
+		xor     dx, dx		; dx = 0
+		div     bx		; div of base
+
+		push    dx		; save in stack
+		inc     cx		; cx++
+
+		test    ax, ax		; check if ax == ax
+		jnz     loop_div	; repeat 
+		
+                mov     ah, 02h         ; set mode of 21h
+
+		loop_prt1:
+		pop     dx
+		add     dl, '0'
+		int     21h		; print(dl)
+		loop    loop_prt1	; cx-- while(cx != 0)
+
+		ret
+print_eightx 	endp
+
+
+new_line	proc
+		mov 	dl, 0dh
+		int 	21h
+		mov 	dl, 0ah
+		int 	21h
+
+		ret
+new_line	endp
+
+.data 
+ZERO		equ	'0'
+table_hex	db	'0123456789ABCDEF'
+str_hex		db	'00', '$'
+
+end 		start           
