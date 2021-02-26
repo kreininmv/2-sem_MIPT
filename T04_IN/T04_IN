@@ -1,0 +1,252 @@
+.model tiny
+.code
+org 100h
+;nasm
+;Color of registers:
+color		= 54h
+
+; The address of videoram
+videoram	= 0b800h			; the address of videoram
+
+; The coordinates of the first register:
+x1		= 68
+y1		= 15
+
+;=======================================================================================
+start:
+;=======================================================================================
+		xor bx, bx
+		mov es, bx
+		mov bx, 09h * 4
+
+		mov ax, word ptr es:[bx]
+		mov word ptr Old09IntOff, ax
+		mov ax, word ptr es:[bx + 2]
+		mov word ptr Old09IntSeg, ax
+
+		cli												
+
+		mov word ptr es:[bx], offset new09_int
+		mov ax, cs
+		mov word ptr es:[bx + 2], ax
+		sti								
+
+		mov ax, 3100h
+		mov dx, offset end_programm
+		shr dx, 4
+		inc dx
+		int 21h
+
+
+;=======================================================================================				
+; NEW INTERRUPT 08h
+;=======================================================================================
+new08_int	proc
+		push si di ds es dx cx bx ax 										
+		
+		push cs
+		pop ds
+		call print_registers		; Painting registers:
+
+Old8:           
+		pop ax bx cx dx es ds di si
+
+		db 0eah 
+Old08IntOff:    dw 0
+Old08IntSeg:    dw 0
+
+		endp
+;=======================================================================================
+
+;=======================================================================================				
+; NEW INTERRUPT 09h
+;=======================================================================================
+new09_int	proc
+		push si di ds es dx cx bx ax 				
+; Chechin FOR '`'
+		mov ah, 4eh	
+		in al, 60h
+				
+		cmp al, 0d8h			; the scan-code of keystroke the letter '`'
+		jne Old9
+		
+		push cs
+		pop ds				
+		call print_registers		; Painting registers:
+
+; The end of own interrupt				
+Old9:	
+		pop ax bx cx dx es ds di si
+				
+		db 0eah 
+Old09IntOff:    dw 0
+Old09IntSeg:    dw 0
+
+
+		endp
+;=======================================================================================
+
+;=======================================================================================
+; Print all beautiful register-words
+;=======================================================================================
+print_registers:
+		mov bx, videoram
+		mov es, bx
+
+		mov ah, color
+		mov cx, (x1 + y1 * 80) * 2
+		mov bx, offset reg_memory	
+
+		mov si, offset register_ax	
+		pop dx
+		mov cs:[bx], dx			
+		call print_phrase
+				
+		mov si, offset register_bx	
+		pop dx
+		mov cs:[bx + 2], dx		
+		call print_phrase
+				
+		mov si, offset register_cx	
+		pop dx
+		mov cs:[bx + 4], dx		
+		call print_phrase
+				
+		mov si, offset register_dx	
+		pop dx
+		mov cs:[bx + 6], dx		
+		call print_phrase
+
+		mov si, offset register_es	
+		pop dx
+		mov cs:[bx + 8], dx		
+		call print_phrase
+
+		mov si, offset register_ds	
+		pop dx
+		mov cs:[bx + 10], dx		
+		call print_phrase
+		
+		mov si, offset register_di
+		pop dx
+		mov cs:[bx + 12], dx		
+		call print_phrase
+	
+		mov si, offset register_si
+		pop dx
+		mov cs:[bx + 14], dx		
+		call print_phrase
+
+		
+; I again push push di ds es dx cx bx ax
+		mov dx, cs:[bx + 14]
+		push dx
+		mov dx, cs:[bx + 12]
+		push dx
+		mov dx, cs:[bx + 10]
+		push dx
+		mov dx, cs:[bx + 8]
+		push dx
+		mov dx, cs:[bx + 6]
+		push dx
+		mov dx, cs:[bx + 4]
+		push dx
+		mov dx, cs:[bx + 2]
+		push dx
+		mov dx, cs:[bx]
+		push dx
+			
+		ret
+;=======================================================================================
+
+;=======================================================================================
+; cx - coodinates of first symbol in videoram
+; si - adress of word
+;=======================================================================================
+print_phrase	proc
+		mov di, cx
+
+print_message:
+		mov al, cs:[si]
+		inc si
+		cmp al, '$'
+		je end_printing
+		stosw				; pushing the letter in videoram
+
+		jmp print_message
+
+; Printing the numbers of registers
+end_printing:
+		push 	cx ax bx
+		mov 	ax, dx
+		
+		xchg 	al, ah
+
+		call 	print_hex		; print register in HEX
+		pop 	bx ax cx 
+		
+		push 	cx ax bx
+		mov 	ax, dx
+		call 	print_hex		; print register in HEX
+		
+		mov 	al, 'h'
+		mov 	es:[di], ax 
+
+		pop 	bx ax cx 
+		
+		add 	cx, 160			; going to the next line
+		ret
+		endp
+;=======================================================================================
+
+;=======================================================================================
+;	di - coordinates in videoram
+;	al - symbol
+;=======================================================================================
+print_hex 	proc 
+
+	        mov     cx, ax
+		and     ax, 000fh		; ax = 00AL0
+	        mov     bx, offset table_hex
+
+		xlat				; al = bx[al] 
+
+		mov 	ah, color
+		mov 	es:[di + 2], ax 
+		mov     ax, cx			;
+		and     ax, 00f0h		; ax = 000AL
+		mov     cl, 4			; cl = 4
+		shr     ax, cl			; ax >> 4
+
+        	xlat    			; al = bx[al]
+
+		mov 	ah, color
+		mov 	es:[di], ax
+
+		add 	di, 4
+
+		ret
+print_hex 	endp
+;=======================================================================================
+
+.data
+old09_int	dd 0			; the address of old interrupt
+old08_int	dd 0			; the address of old interrupt
+
+; Registers and the table of HEX
+;ded_marke	dd 10
+register_ax	db 'ax = $'
+register_bx	db 'bx = $'
+register_cx	db 'cx = $'
+register_dx	db 'dx = $'
+register_es	db 'es = $'
+register_ds	db 'ds = $'
+register_di	db 'di = $'
+register_si	db 'si = $'
+table_hex	db '0123456789ABCDEF'
+
+; Memory for old registers
+reg_memory	db 20 dup (?)
+
+end_programm:
+end start
