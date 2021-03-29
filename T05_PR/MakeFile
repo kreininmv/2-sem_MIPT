@@ -1,0 +1,4 @@
+all:
+	nasm -f elf64 T05_PR.s
+	ld T05_PR.o -o T05_PR
+	./T05_PR

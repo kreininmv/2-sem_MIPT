@@ -1,0 +1,5 @@
+all:
+	nasm -f elf64 T05_PR.s -d T05_PR.o
+	gcc -Wall -g -c main.cpp -o main.o
+	gcc -o main.exe -no-pie main.o T05_PR.o
+	./main.exe

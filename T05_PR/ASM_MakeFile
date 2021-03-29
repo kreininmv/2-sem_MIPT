@@ -1,0 +1,3 @@
+all:
+	nasm -f elf64 main_s.s -o main_s.o
+	gcc -o main_s.exe -no-pie main_s.o
