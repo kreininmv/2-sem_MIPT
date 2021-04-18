@@ -1,5 +1,0 @@
-﻿  WIN.CPP
-W:\MIPT\S_Programing\T08MANDEL\T08MANDEL\WIN.h(67,2): warning C4091: 'static ': ignored on left of 'win' when no variable is declared
-W:\MIPT\S_Programing\T08MANDEL\T08MANDEL\WIN.CPP(38,34): warning C4305: 'argument': truncation from 'double' to 'GLclampf'
-W:\MIPT\S_Programing\T08MANDEL\T08MANDEL\WIN.CPP(113,33): warning C4244: '=': conversion from 'double' to 'BYTE', possible loss of data
-  T08MANDEL.vcxproj -> W:\MIPT\S_Programing\T08MANDEL\Debug\T08MANDEL.exe
