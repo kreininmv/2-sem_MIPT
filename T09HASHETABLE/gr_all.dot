@@ -1,0 +1,10 @@
+digraph G{
+node [color="#000000", shape=record];
+ struct0 [style="filled", fillcolor="#FF019A"];
+  struct0 [label="<f1> ZERO"];
+  node [color="#000000", shape=record];
+  structzero [style="filled", fillcolor="#FF019A"];
+  structzero [label="<f1> INVALID_ZERO"];
+  edge[color = "white"];
+edge[color = "black"];
+}

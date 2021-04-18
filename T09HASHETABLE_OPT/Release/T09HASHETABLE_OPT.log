@@ -1,0 +1,9 @@
+﻿  hash_func.cpp
+W:\MIPT\S_Programing\T09HASHETABLE_OPT\list.h(17,1): warning C4005: 'NDEBUG': macro redefinition
+W:\MIPT\S_Programing\T09HASHETABLE_OPT\hash_func.cpp : message : see previous definition of 'NDEBUG'
+  Generating code
+  1 of 33 functions ( 3.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    1 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  T09HASHETABLE_OPT.vcxproj -> W:\MIPT\S_Programing\T09HASHETABLE_OPT\Release\T09HASHETABLE_OPT.exe

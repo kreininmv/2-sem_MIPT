@@ -1,0 +1,8 @@
+﻿  MAIN.cpp
+W:\MIPT\S_Programing\T08MANDEL_OPT\win.h(72,2): warning C4091: 'static ': ignored on left of 'win' when no variable is declared
+  Generating code
+  0 of 93 functions ( 0.0%) were compiled, the rest were copied from previous compilation.
+    0 functions were new in current compilation
+    0 functions had inline decision re-evaluated but remain unchanged
+  Finished generating code
+  T08MANDEL_OPT.vcxproj -> W:\MIPT\S_Programing\T08MANDEL_OPT\Release\T08MANDEL_OPT.exe
