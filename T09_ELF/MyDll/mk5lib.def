@@ -1,6 +1,0 @@
-LIBRARY mk5lib
-EXPORTS WriteConsoleA   	
-EXPORTS ReadConsoleA		
-EXPORTS ExitProcess
-EXPORTS ToDec
-EXPORTS mk5scanf
